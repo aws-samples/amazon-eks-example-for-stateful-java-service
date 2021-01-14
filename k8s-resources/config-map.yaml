@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: java-ms
+  namespace: default
+data:
+  host: "***.***.9vakxk.0001.euc1.cache.amazonaws.com"
+  port: "6379"

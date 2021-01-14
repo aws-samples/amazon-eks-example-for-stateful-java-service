@@ -1,0 +1,147 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+
+  This Cloudformation Template deploys a Amazon EKS Cluster and an Amazon ElastiCache Redis instance.
+
+  Disclaimer: Not for Production Use. Demo and Testing purposes only.
+
+  Authors: Bastian Klein <basklein@amazon.com>
+
+Parameters:
+  TemplatePath:
+    Description: Base path of template location within S3
+    Type: String
+  VPCcidr:
+    Description: VPC CIDR CidrBlock
+    Type: String
+    Default: 10.0.0.0/16
+  PublicSubnets:
+    Description:  Public Subnets
+    Type: CommaDelimitedList
+    Default: 10.0.1.0/24,10.0.2.0/24,10.0.3.0/24
+  PrivateSubnets:
+    Description: Private Subnet
+    Type: CommaDelimitedList
+    Default: 10.0.4.0/24,10.0.5.0/24,10.0.6.0/24
+  PrivateDBSubnets:
+    Description: Private DB Subnet
+    Type: CommaDelimitedList
+    Default: 10.0.7.0/24,10.0.8.0/24,10.0.9.0/24
+  EKSWorkerNodeInstanceType:
+    Description: Instance type used for the EKS Managed Node Group
+    Type: String
+    Default: t3.micro
+  RedisInstanceType:
+    Description: Instance type used for the Redis instance
+    Type: String
+    Default: cache.t3.micro
+  CacheAZMode:
+    Description: Redis Cache AZ Mode
+    Type: String
+    Default: single-az
+    AllowedValues:
+      - single-az
+      - cross-az
+  EKSNodeGroupMinSize:
+    Description: Minimum Size of the EKS Node Group
+    Type: Number
+    Default: 1
+  EKSNodeGroupMaxSize:
+    Description: Maximum Size of the EKS Node Group
+    Type: Number
+    Default: 10
+  EKSNodeGroupDesiredSize:
+    Description: Desired Size of the EKS Node Group
+    Type: Number
+    Default: 3
+
+Resources:
+  NetworkStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Sub: "https://s3.amazonaws.com/${TemplatePath}/network.template.yaml"
+      Parameters:
+        VPCcidr:
+          Ref: VPCcidr
+        PrivateSubnets:
+          Fn::Join:
+            - ","
+            - Ref: "PrivateSubnets"
+        PublicSubnets:
+          Fn::Join:
+            - ","
+            - Ref: "PublicSubnets"
+        PrivateDBSubnets:
+          Fn::Join:
+            - ","
+            - Ref: PrivateDBSubnets
+      Tags:
+        - Key: Name
+          Value: NetworkStack
+
+  SecurityGroupStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Sub: "https://s3.amazonaws.com/${TemplatePath}/securitygroups.template.yaml"
+      Parameters:
+        VPC:
+          Fn::GetAtt:
+            - NetworkStack
+            - Outputs.VPC
+        EKSClusterSecurityGroup:
+          Fn::GetAtt:
+            - EKSStack
+            - Outputs.EKSClusterSecurityGroup
+      Tags:
+        - Key: Name
+          Value: SecurityGroupStack
+
+  ElastiCacheStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Sub: "https://s3.amazonaws.com/${TemplatePath}/elasticache.template.yaml"
+      Parameters:
+        RedisInstanceType:
+          Ref: RedisInstanceType
+        VPC:
+          Fn::GetAtt:
+            - NetworkStack
+            - Outputs.VPC
+        CacheAZMode: !Ref CacheAZMode
+        PrivateDBSubnets:
+          Fn::GetAtt:
+            - NetworkStack
+            - Outputs.PrivateDBSubnets
+        ElasticacheSecurityGroup:
+          Fn::GetAtt:
+            - SecurityGroupStack
+            - Outputs.ElasticacheSecurityGroup
+      Tags:
+        - Key: Name
+          Value: DatabaseStack
+
+  EKSStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Sub: "https://s3.amazonaws.com/${TemplatePath}/eks.template.yaml"
+      Parameters:
+        VPC:
+          Fn::GetAtt:
+            - NetworkStack
+            - Outputs.VPC
+        PublicSubnets:
+          Fn::GetAtt:
+            - NetworkStack
+            - Outputs.PublicSubnets
+        PrivateSubnets:
+          Fn::GetAtt:
+            - NetworkStack
+            - Outputs.PrivateSubnets
+        EKSWorkerNodeInstanceType: !Ref EKSWorkerNodeInstanceType
+        EKSNodeGroupMinSize: !Ref EKSNodeGroupMinSize
+        EKSNodeGroupMaxSize: !Ref EKSNodeGroupMaxSize
+        EKSNodeGroupDesiredSize: !Ref EKSNodeGroupDesiredSize

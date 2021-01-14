@@ -1,0 +1,106 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+
+  This Cloudformation Template deploys the Redis Cluster (Amazon ElastiCache).
+
+  Disclaimer: Not for production use. Demo and testing purposes only.
+
+  Author: Bastian Klein <basklein@amazon.com>
+
+Parameters:
+  VPC:
+    Description: Reference for the VPC in which to deploy Amazon ElastiCache
+    Type: String
+  RedisInstanceType:
+    Description: Instance type for Amazon ElastiCache (Redis)
+    Type: String
+    AllowedValues:
+      - cache.t3.micro
+      - cache.t3.small
+      - cache.t3.medium
+      - cache.m5.large
+      - cache.m5.xlarge
+      - cache.m5.2xlarge
+      - cache.m5.4xlarge
+      - cache.m5.12xlarge
+      - cache.m5.24xlarge
+      - cache.r5.large
+      - cache.r5.xlarge
+      - cache.r5.2xlarge
+      - cache.r5.4xlarge
+      - cache.r5.12xlarge
+      - cache.r5.24xlarge
+  PrivateDBSubnets:
+    Description: Comma separated list of the private database subnets
+    Type: CommaDelimitedList
+  CacheAZMode:
+    Description: Redis Cache AZ Mode
+    Type: String
+    Default: single-az
+    AllowedValues:
+      - single-az
+      - cross-az
+  ElasticacheSecurityGroup:
+    Description: Security Group used for the ElastiCache instances
+    Type: String
+
+Resources:
+
+  CacheSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      Description: CacheSubnetGroup
+      SubnetIds: !Ref PrivateDBSubnets
+
+  ParametersGroup:
+    Type: AWS::ElastiCache::ParameterGroup
+    Properties:
+      CacheParameterGroupFamily: "redis5.0"
+      Description: "Modifications to support better performance"
+      Properties:
+        tcp-keepalive: 60
+        timeout: 900
+
+  ElasticacheRedis:
+    Type: AWS::ElastiCache::CacheCluster
+    Properties:
+      NumCacheNodes: 1
+      CacheNodeType:
+        Ref: RedisInstanceType
+      CacheParameterGroupName:
+        Ref: ParametersGroup
+      CacheSubnetGroupName: !Ref CacheSubnetGroup
+      AZMode: !Ref CacheAZMode
+      Engine: "redis"
+      EngineVersion: "5.0.5"
+      VpcSecurityGroupIds:
+        - Ref: ElasticacheSecurityGroup
+
+Outputs:
+  DBAddress:
+    Description: Database Address
+    Value:
+      Fn::GetAtt:
+        - ElasticacheRedis
+        - RedisEndpoint.Address
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", DBAddress ] ]
+  DBPort:
+    Description: Database Port
+    Value:
+      Fn::GetAtt:
+        - ElasticacheRedis
+        - RedisEndpoint.Port
+  ElasticacheRedis:
+    Description: Redis Cluster
+    Value:
+      Ref: ElasticacheRedis
+  ParametersGroup:
+    Description: TRedis Parameter Group
+    Value:
+      Ref: ParametersGroup
+  CacheSubnetGroup:
+    Description: Redis Subnet Group
+    Value:
+      Ref: CacheSubnetGroup

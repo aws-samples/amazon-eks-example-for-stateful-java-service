@@ -1,0 +1,25 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+
+  This Cloudformation Template deploys an S3 Bucket that will store the Cloudformation templates.
+
+  Disclaimer: Not for production use. Demo and testing purposes only.
+
+  Author: Bastian Klein <basklein@amazon.com>
+
+Resources:
+
+  SourcesBucket:
+    Type: AWS::S3::Bucket
+    Description: This is the S3 Bucket Archive for the CF Template files
+    DeletionPolicy: Delete
+
+Outputs:
+
+  SourcesBucketName:
+    Description: Name of the bootstrap bucket for the Workshop
+    Value:
+      Ref: SourcesBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-SourceBucketName"

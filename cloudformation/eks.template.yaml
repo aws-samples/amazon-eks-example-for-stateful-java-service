@@ -1,0 +1,126 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+
+  This Cloudformation Template deploys the Amazon EKS Cluster.
+
+  Disclaimer: Not for production use. Demo and testing purposes only.
+
+  Author: Bastian Klein <basklein@amazon.com>
+
+Parameters:
+  VPC:
+    Description: VPC
+    Type: String
+  PublicSubnets:
+    Description:  Public Subnets
+    Type: CommaDelimitedList
+  PrivateSubnets:
+    Description:  Private Subnets
+    Type: CommaDelimitedList
+  EKSWorkerNodeInstanceType:
+    Description: Instance type for the worker nodes
+    Type: String
+    Default: t3.micro
+  EKSNodeGroupMinSize:
+    Description: Minimum Size of the EKS Node Group
+    Type: Number
+    Default: 1
+  EKSNodeGroupMaxSize:
+    Description: Maximum Size of the EKS Node Group
+    Type: Number
+    Default: 10
+  EKSNodeGroupDesiredSize:
+    Description: Desired Size of the EKS Node Group
+    Type: Number
+    Default: 3
+
+Mappings:
+  ServicePrincipals:
+    aws-cn:
+      ec2: ec2.amazonaws.com.cn
+    aws:
+      ec2: ec2.amazonaws.com
+
+Resources:
+  EKSControlPlaneSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId:
+        Ref: VPC
+      GroupDescription: Security group for the Control Plane
+
+  EKSClusterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - eks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+
+  EKSNodeInstanceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - !FindInMap [ServicePrincipals, !Ref "AWS::Partition", ec2]
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEKS_CNI_Policy"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Path: /
+
+  EKSCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: java-app-demo-cluster
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - !Ref EKSControlPlaneSecurityGroup
+        SubnetIds:
+          - !Select [0, !Ref PrivateSubnets]
+          - !Select [1, !Ref PrivateSubnets]
+          - !Select [2, !Ref PrivateSubnets]
+      RoleArn: !GetAtt EKSClusterRole.Arn
+      Version: 1.18
+
+  EKSNodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      AmiType: AL2_x86_64
+      ClusterName: !Ref EKSCluster
+      InstanceTypes:
+        - !Ref EKSWorkerNodeInstanceType
+      NodeRole: !GetAtt EKSNodeInstanceRole.Arn
+      ScalingConfig:
+        DesiredSize: !Ref EKSNodeGroupDesiredSize
+        MaxSize: !Ref EKSNodeGroupMaxSize
+        MinSize: !Ref EKSNodeGroupMinSize
+      Subnets:
+        - !Select [0, !Ref PrivateSubnets]
+        - !Select [1, !Ref PrivateSubnets]
+        - !Select [2, !Ref PrivateSubnets]
+
+Outputs:
+  EKSClusterSecurityGroup:
+    Description: Security Group of the EKS Cluster
+    Value: !GetAtt EKSCluster.ClusterSecurityGroupId
+  EKSClusterName:
+    Description: EKS Cluster Name
+    Value: !Ref EKSCluster
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", EKSClusterName ] ]

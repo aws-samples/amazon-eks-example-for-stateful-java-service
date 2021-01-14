@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-ms
+  # labels so that we can bind a Service to this Pod
+  labels:
+    app: java-ms
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: java-ms
+  template:
+    metadata:
+      labels:
+        app: java-ms
+    spec:
+      containers:
+      - name: java-ms
+        image: bastianklein/java-ms:1.2
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "500m" #half the CPU free: 0.5 Core
+            memory: "256Mi"
+          limits:
+            cpu: "1000m" #max 1.0 Core
+            memory: "512Mi"
+        env:
+          - name: SPRING_REDIS_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: java-ms
+                key: host
+          - name: SPRING_REDIS_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: java-ms
+                key: port
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP

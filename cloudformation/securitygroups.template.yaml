@@ -1,0 +1,34 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+
+  This Cloudformation Template deploys the Security Groups required for communication between Pods and Amazon ElastiCache.
+
+  Disclaimer: Not for production use. Demo and testing purposes only.
+
+  Author: Bastian Klein <basklein@amazon.com>
+
+Parameters:
+  VPC:
+    Type: String
+  EKSClusterSecurityGroup:
+    Type: String
+
+Resources:
+
+  ElasticacheSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId:
+        Ref: VPC
+      GroupDescription: Security group for the shared storage
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '6379'
+          ToPort: '6379'
+          SourceSecurityGroupId: !Ref EKSClusterSecurityGroup
+
+Outputs:
+  ElasticacheSecurityGroup:
+    Description: A reference to the created SG for Elasticache
+    Value: !Ref ElasticacheSecurityGroup
