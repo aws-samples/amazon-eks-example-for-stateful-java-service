@@ -14,6 +14,13 @@ Resources:
     Type: AWS::S3::Bucket
     Description: This is the S3 Bucket Archive for the CF Template files
     DeletionPolicy: Delete
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 
 Outputs:
 
