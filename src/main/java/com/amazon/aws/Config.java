@@ -33,7 +33,11 @@ public class Config {
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
 
-        return new LettuceConnectionFactory(new RedisStandaloneConfiguration(this.host, this.port));
+        if (this.host != null && this.port != null) {
+            return new LettuceConnectionFactory(new RedisStandaloneConfiguration(this.host, this.port));
+        } else {
+            return new LettuceConnectionFactory(new RedisStandaloneConfiguration());
+        }
     }
 
 }
