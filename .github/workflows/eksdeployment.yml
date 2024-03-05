@@ -6,8 +6,8 @@ on:
     branches: [ main ]
 
 env:
-  ECR_REPOSITORY: jave-app-ecr
-  EKS_CLUSTER_NAME: module-eks 
+  ECR_REPOSITORY: tessolve-ecr
+  EKS_CLUSTER_NAME: tessolve-eks 
   AWS_REGION: us-west-2
 
 jobs:
