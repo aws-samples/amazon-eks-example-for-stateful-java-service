@@ -11,8 +11,7 @@ on:
         default: ./terraformECR.tf
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+ 
 
 jobs:
   tf_code_check:
