@@ -8,7 +8,7 @@ on:
       tfpath:
         description: 'TF File Path'     
         required: false
-        default: ./terraformECR.tf
+        default: Terraform/terraform_AWs
   push:
     branches: [ main ]
  
