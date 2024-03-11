@@ -11,7 +11,7 @@ jobs:
       - name: Check out repository code
         uses: main@v1
       - name: pull-request
-        uses: Govardhan235/pull-request@v2
+        uses: ./.github/actions/my-action@v2
         with:
           destination_branch: "develop"
           github_token: ${{ secrets.GGITHUB_TOKEN }}
