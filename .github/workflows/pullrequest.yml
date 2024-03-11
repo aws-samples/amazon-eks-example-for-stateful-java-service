@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
-        uses: main@v1
+        uses: actions/checkout@v3
       - name: pull-request
         uses: actions/checkout@v3
         with:
