@@ -1,0 +1,19 @@
+name: Pull Request Action
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: pull-request
+        uses: actions/checkout@v3
+        with:
+          destination_branch: "develop"
+          github_token: ${{ secrets.GGITHUB_TOKEN }}
+          pr_label: "feature, automated pr"
+          pr_title: "[Example] Simple demo"

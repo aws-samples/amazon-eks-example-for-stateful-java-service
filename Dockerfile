@@ -7,10 +7,10 @@ VOLUME /target
 RUN addgroup -S demo-app && adduser -S demo-app -G demo-app
 USER demo-app:demo-app
 ARG DEPENDENCY=target/dependency
-COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY ${DEPENDENCY}/META-INF /app/META-INF
-COPY ${DEPENDENCY}/BOOT-INF/classes /app
-COPY ${DEPENDENCY}/org /app/org
+#COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib
+#COPY ${DEPENDENCY}/META-INF /app/META-INF
+#COPY ${DEPENDENCY}/BOOT-INF/classes /app
+#COPY ${DEPENDENCY}/org /app/org
 
 EXPOSE 8080
 
