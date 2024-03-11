@@ -6,7 +6,7 @@
 .vscode
 
 # Java / Maven
-target/
+#target/
 
 # MacOS
 .DS_Store
