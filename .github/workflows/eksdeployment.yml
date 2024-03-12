@@ -55,3 +55,4 @@ jobs:
       run: |
         kubectl apply -f k8s-resources/deployment.yaml
         kubectl apply -f k8s-resources/service.yaml
+        kubectl apply -f k8s-resources/config-map.yaml
