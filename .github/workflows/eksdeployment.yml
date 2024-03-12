@@ -8,7 +8,7 @@ on:
 env:
   ECR_REPOSITORY: tessolve-ecr
   EKS_CLUSTER_NAME: tessolve-eks 
-  AWS_REGION: us-west-2
+  AWS_REGION: us-east-1
 
 jobs:
   
