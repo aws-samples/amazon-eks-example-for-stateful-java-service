@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: java-ms
-        image: bastianklein/java-ms:1.2
+        image: 975050223236.dkr.ecr.us-east-1.amazonaws.com/tessolve-ecr:latest
         imagePullPolicy: Always
         resources:
           requests:
