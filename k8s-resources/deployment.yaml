@@ -24,8 +24,8 @@ spec:
             cpu: "500m" #half the CPU free: 0.5 Core
             memory: "256Mi"
           limits:
-            cpu: "1000m" #max 1.0 Core
-            memory: "512Mi"
+            cpu: "700m" #max 1.0 Core
+            memory: "412Mi"
         env:
           - name: SPRING_REDIS_HOST
             valueFrom:
