@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: java-ms
-        image: 975050223236.dkr.ecr.us-east-1.amazonaws.com/tessolve-ecr:ed954ef
+        image: 975050223236.dkr.ecr.us-east-1.amazonaws.com/tessolve-ecr:569b40c
         imagePullPolicy: Always
         resources:
           requests:
